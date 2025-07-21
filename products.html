@@ -461,10 +461,42 @@
             window.location.href = 'index.html';
         });
 
-        // Initialize the page
+        // Initialize the page with enhanced protection
         document.addEventListener('DOMContentLoaded', function() {
+            // Immediate redirect if no session
+            if (!sessionStorage.getItem('isLoggedIn')) {
+                window.location.replace('index.html');
+                return;
+            }
+            
             if (checkAuthentication()) {
                 showProductsContent();
+                // Mark as valid access for subsequent checks
+                sessionStorage.setItem('validAccess', 'true');
+            }
+        });
+
+        // Additional protection: detect direct access attempts
+        (function() {
+            // Check if page was accessed directly (without referrer from login)
+            if (!sessionStorage.getItem('isLoggedIn')) {
+                // Immediate redirect without showing content
+                document.body.innerHTML = '<div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial;"><div style="text-align: center;"><h2>🔒 Redirection...</h2><p>Accès protégé</p></div></div>';
+                setTimeout(() => {
+                    window.location.replace('index.html');
+                }, 500);
+                return;
+            }
+        })();
+
+        // Prevent right-click and dev tools (basic deterrent)
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', function(e) {
+            // Disable F12, Ctrl+Shift+I, Ctrl+U
+            if (e.key === 'F12' || 
+                (e.ctrlKey && e.shiftKey && e.key === 'I') ||
+                (e.ctrlKey && e.key === 'u')) {
+                e.preventDefault();
             }
         });
     </script>

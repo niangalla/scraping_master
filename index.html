@@ -224,9 +224,14 @@
                 // Successful login
                 successMessage.style.display = 'block';
                 
-                // Set session flag
+                const loginTime = new Date().getTime().toString();
+                const loginToken = btoa(loginTime + 'secret_key_2024' + navigator.userAgent.substring(0, 20));
+                
+                // Set session data with security token
                 sessionStorage.setItem('isLoggedIn', 'true');
-                sessionStorage.setItem('loginTime', new Date().getTime().toString());
+                sessionStorage.setItem('loginTime', loginTime);
+                sessionStorage.setItem('loginToken', loginToken);
+                sessionStorage.setItem('loginIP', '1'); // Placeholder for IP tracking
                 
                 // Redirect to products page after 1 second
                 setTimeout(() => {
@@ -246,20 +251,21 @@
         document.addEventListener('DOMContentLoaded', function() {
             const isLoggedIn = sessionStorage.getItem('isLoggedIn');
             const loginTime = sessionStorage.getItem('loginTime');
+            const loginToken = sessionStorage.getItem('loginToken');
             
-            // Check if login is still valid (30 minutes)
-            if (isLoggedIn === 'true' && loginTime) {
+            // Check if login is still valid (30 minutes) and token is present
+            if (isLoggedIn === 'true' && loginTime && loginToken) {
                 const now = new Date().getTime();
                 const timeDiff = now - parseInt(loginTime);
                 const thirtyMinutes = 30 * 60 * 1000;
+                const expectedToken = btoa(loginTime + 'secret_key_2024' + navigator.userAgent.substring(0, 20));
                 
-                if (timeDiff < thirtyMinutes) {
-                    // Still logged in, redirect to products
+                if (timeDiff < thirtyMinutes && loginToken === expectedToken) {
+                    // Still logged in with valid token, redirect to products
                     window.location.href = 'products.html';
                 } else {
-                    // Session expired, clear storage
-                    sessionStorage.removeItem('isLoggedIn');
-                    sessionStorage.removeItem('loginTime');
+                    // Session expired or invalid token, clear storage
+                    sessionStorage.clear();
                 }
             }
         });
